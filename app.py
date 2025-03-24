@@ -7,14 +7,21 @@ app.secret_key = os.getenv("FLASK_SECRET_KEY")
 
 FB_APP_ID = os.getenv("FB_APP_ID")
 FB_APP_SECRET = os.getenv("FB_APP_SECRET")
-REDIRECT_URI = "https://your-render-url.onrender.com/auth/callback"  # update this after Render deployment
+REDIRECT_URI = "https://luvoclone-auth-1.onrender.com/auth/callback"  # <- Update to match your Render URL
 
+# Root route (Render will check this to verify the app is running)
+@app.route('/')
+def home():
+    return "Hello Supreme Ruler! LuvoClone Auth is live!"
+
+# Facebook Login
 @app.route('/login')
 def login():
     return redirect(
         f"https://www.facebook.com/v17.0/dialog/oauth?client_id={FB_APP_ID}&redirect_uri={REDIRECT_URI}&scope=pages_show_list,pages_messaging,pages_manage_metadata"
     )
 
+# Facebook OAuth Callback
 @app.route('/auth/callback')
 def callback():
     code = request.args.get('code')
@@ -25,6 +32,7 @@ def callback():
     session['user_token'] = access_token
     return redirect('/select-page')
 
+# Select a Page from Facebook
 @app.route('/select-page')
 def select_page():
     access_token = session.get('user_token')
@@ -35,6 +43,7 @@ def select_page():
     pages = requests.get(url).json()
     return jsonify(pages)
 
+# Save the selected Page
 @app.route('/save-page', methods=['POST'])
 def save_page():
     data = request.json
@@ -47,5 +56,6 @@ def save_page():
 
     return jsonify({"status": "success", "message": "Page connected successfully!"})
 
+# Run app locally (not used in Render)
 if __name__ == '__main__':
     app.run(debug=True)
