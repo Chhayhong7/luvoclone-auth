@@ -59,3 +59,23 @@ def save_page():
 # Run app locally (not used in Render)
 if __name__ == '__main__':
     app.run(debug=True)
+@app.route('/webhook/messenger', methods=['POST'])
+def messenger_webhook():
+    data = request.get_json()
+
+    sender_id = data['entry'][0]['messaging'][0]['sender']['id']
+    message_text = data['entry'][0]['messaging'][0]['message']['text']
+    page_id = data['entry'][0]['id']
+
+    # POST this to Make AI Hub
+    MAKE_AI_HUB_WEBHOOK = "https://hook.us2.make.com/8il24edxdmn27rytoac5plup9shqh4k1"
+    payload = {
+        "sender_id": sender_id,
+        "message": message_text,
+        "page_id": page_id
+    }
+
+    response = requests.post(MAKE_AI_HUB_WEBHOOK, json=payload)
+    print("Sent to Make:", response.status_code)
+
+    return "OK", 200
